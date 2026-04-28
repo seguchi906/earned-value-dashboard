@@ -1,5 +1,8 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Project Notes
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+This app is a Vite + React single-page application.
+
+- Do not add Next.js App Router, API routes, or server-only code.
+- Keep file import, CSV parsing, calculation, and storage in the browser.
+- Use `npm.cmd run build:single` to generate `single-html/earned-value-dashboard.html`.
+- Persistent data is stored in IndexedDB.

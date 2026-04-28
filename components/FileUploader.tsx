@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
 
 interface FileUploaderProps {
   label: string;
@@ -8,7 +8,7 @@ interface FileUploaderProps {
   loadedAt: string | null;
   count: number | null;
   fileTitle?: string | null;
-  onFile: (text: string) => void;
+  onFile: (text: string) => void | Promise<void>;
   onError: (msg: string) => void;
 }
 
@@ -22,52 +22,72 @@ export default function FileUploader({
   onError,
 }: FileUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
+
+  const isLoaded = loadedAt !== null && count !== null && count > 0;
+
+  const decodeText = (buffer: ArrayBuffer) => {
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+    } catch {
+      return new TextDecoder("shift_jis").decode(buffer);
+    }
+  };
 
   const handleFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result;
-      if (typeof text === "string") {
-        onFile(text);
+
+    reader.onload = () => {
+      try {
+        if (!(reader.result instanceof ArrayBuffer)) {
+          onError("ファイルの読み込み結果が不正です。");
+          return;
+        }
+
+        void Promise.resolve(onFile(decodeText(reader.result))).catch((error) => {
+          onError(error instanceof Error ? error.message : "ファイルの読み込み後の処理に失敗しました。");
+        });
+      } catch (error) {
+        onError(error instanceof Error ? error.message : "ファイルの読み込みに失敗しました。");
       }
     };
+
     reader.onerror = () => onError("ファイルの読み込みに失敗しました。");
-    reader.readAsText(file, "utf-8");
+    reader.readAsArrayBuffer(file);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) handleFile(file);
-    e.target.value = "";
+    event.target.value = "";
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
+  const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
     if (file) handleFile(file);
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
   };
 
   const formatDate = (iso: string | null) => {
     if (!iso) return null;
-    const d = new Date(iso);
-    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    const date = new Date(iso);
+    return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   };
 
-  const isLoaded = loadedAt !== null && count !== null && count > 0;
-
   return (
-    <div
+    <label
+      htmlFor={inputId}
       className="border-2 border-dashed rounded-xl p-4 flex flex-col gap-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
       style={{ borderColor: isLoaded ? "#16a34a" : "#d1d5db" }}
-      onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
       <input
+        id={inputId}
         ref={inputRef}
         type="file"
         accept={accept}
@@ -75,9 +95,7 @@ export default function FileUploader({
         onChange={handleChange}
       />
       <div className="flex items-center gap-2">
-        <span className="text-lg">
-          {isLoaded ? "✓" : "📂"}
-        </span>
+        <span className="text-lg">{isLoaded ? "OK" : "📁"}</span>
         <span className="font-semibold text-gray-700 text-sm">{label}</span>
       </div>
 
@@ -92,6 +110,6 @@ export default function FileUploader({
           クリックまたはドラッグ&ドロップでファイルを選択
         </div>
       )}
-    </div>
+    </label>
   );
 }

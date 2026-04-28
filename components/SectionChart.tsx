@@ -19,7 +19,7 @@ interface SectionChartProps {
 const formatManYen = (value: number) =>
   `${Math.round(value / 10000).toLocaleString("ja-JP")}万円`;
 
-const COLORS = {
+const COLORS: Record<string, string> = {
   "1課": "#3b82f6",
   "2課": "#22c55e",
   "3課": "#a855f7",

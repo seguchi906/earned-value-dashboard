@@ -27,7 +27,7 @@ export type ProjectStatus =
   | "騾ｲ陦御ｸｭ"
   | "譛ｪ逹謇・";
 
-export type ResponsibleSection = "1隱ｲ" | "2隱ｲ" | "3隱ｲ";
+export type ResponsibleSection = string;
 
 export interface RawProject {
   id: string;

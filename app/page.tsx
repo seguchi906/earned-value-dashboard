@@ -86,13 +86,15 @@ export default function HomePage() {
       setErrorMsg(`全体工程表: ${result.error}`);
       return;
     }
+    const next = {
+      ...storedData,
+      projects: result.projects,
+      projectsLoadedAt: new Date().toISOString(),
+      projectsFileTitle: result.title,
+    };
+    setStoredData(next);
     setIsSaving(true);
-    try {
-      const next = await updateProjects(storedData, result.projects, result.title);
-      setStoredData(next);
-    } finally {
-      setIsSaving(false);
-    }
+    updateProjects(storedData, result.projects, result.title).finally(() => setIsSaving(false));
   }, [storedData]);
 
   const handleProgressFile = useCallback(async (text: string) => {
@@ -102,13 +104,14 @@ export default function HomePage() {
       setErrorMsg(`進捗データ: ${result.error}`);
       return;
     }
+    const next = {
+      ...storedData,
+      progressProjects: result.projects,
+      progressLoadedAt: new Date().toISOString(),
+    };
+    setStoredData(next);
     setIsSaving(true);
-    try {
-      const next = await updateProgress(storedData, result.projects);
-      setStoredData(next);
-    } finally {
-      setIsSaving(false);
-    }
+    updateProgress(storedData, result.projects).finally(() => setIsSaving(false));
   }, [storedData]);
 
   const handleOutsourcingFile = useCallback(async (text: string) => {
@@ -118,13 +121,14 @@ export default function HomePage() {
       setErrorMsg(`外注データ: ${result.error}`);
       return;
     }
+    const next = {
+      ...storedData,
+      outsourcingRecords: result.records,
+      outsourcingLoadedAt: new Date().toISOString(),
+    };
+    setStoredData(next);
     setIsSaving(true);
-    try {
-      const next = await updateOutsourcing(storedData, result.records);
-      setStoredData(next);
-    } finally {
-      setIsSaving(false);
-    }
+    updateOutsourcing(storedData, result.records).finally(() => setIsSaving(false));
   }, [storedData]);
 
   const handleClear = async () => {
