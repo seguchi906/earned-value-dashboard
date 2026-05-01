@@ -42,8 +42,8 @@ export default function HomePage() {
   }, []);
 
   const mergedProjects = useMemo<MergedProject[]>(
-    () => mergeProjects(storedData.projects, storedData.progressProjects),
-    [storedData.projects, storedData.progressProjects]
+    () => mergeProjects(storedData.projects, storedData.progressProjects, storedData.outsourcingRecords ?? []),
+    [storedData.projects, storedData.progressProjects, storedData.outsourcingRecords]
   );
 
   const earnedValues = useMemo<EarnedValue[]>(

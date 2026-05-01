@@ -94,6 +94,7 @@ export interface MergedProject {
   allocationSection1: number | null;
   allocationSection2: number | null;
   allocationSection3: number | null;
+  outsourcingAmount: number | null;
   responsibleSections: ResponsibleSection[];
   weeklyProgress: (number | null)[];
   startDate: string;
@@ -119,6 +120,7 @@ export interface FieldSummary {
   field: Field;
   earnedValue: number;
   contractAmount: number;
+  outsourcingAmount: number;
   projectCount: number;
 }
 

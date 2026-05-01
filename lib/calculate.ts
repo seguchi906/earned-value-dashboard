@@ -18,7 +18,8 @@ import { dateToWeekIndex, WEEKS, WEEK_DATES } from "./weeks";
 
 export function mergeProjects(
   rawProjects: RawProject[],
-  progressProjects: RawProgressProject[]
+  progressProjects: RawProgressProject[],
+  outsourcingRecords: RawOutsourcingRecord[] = []
 ): MergedProject[] {
   // 進捗データを業務番号でインデックス化
   const progressMap = new Map<string, RawProgressProject>();
@@ -28,11 +29,25 @@ export function mergeProjects(
     progressMap.set(key, pp);
   }
 
+  const outsourcingAmountMap = new Map<string, number>();
+  for (const rec of outsourcingRecords) {
+    const key = rec.jobNo.trim();
+    if (!key) continue;
+    outsourcingAmountMap.set(
+      key,
+      (outsourcingAmountMap.get(key) ?? 0) + rec.latestAmount
+    );
+  }
+
   return rawProjects.map((rp): MergedProject => {
     const pp = progressMap.get(rp.number);
     const wp =
       pp?.weeklyProgress ??
       (pp?.wp ? [...pp.wp] : Array<null>(51).fill(null));
+    const outsourcingAmount =
+      outsourcingRecords.length > 0
+        ? outsourcingAmountMap.get(rp.number.trim()) ?? null
+        : rp.outsourcingAmount ?? null;
 
     return {
       number: rp.number,
@@ -43,6 +58,7 @@ export function mergeProjects(
       allocationSection1: rp.allocationSection1 ?? null,
       allocationSection2: rp.allocationSection2 ?? null,
       allocationSection3: rp.allocationSection3 ?? null,
+      outsourcingAmount,
       responsibleSections: rp.responsibleSections ?? [],
       weeklyProgress: wp,
       startDate: rp.startDate,
@@ -135,11 +151,19 @@ export function calcSectionSummary(evs: EarnedValue[]): SectionSummary[] {
 
 /** 分野別の出来高・契約金額を集計 */
 export function calcFieldSummary(evs: EarnedValue[]): FieldSummary[] {
-  const fieldMap = new Map<Field, { earned: number; contract: number; count: number }>();
+  const fieldMap = new Map<
+    Field,
+    { earned: number; contract: number; outsourcing: number; count: number }
+  >();
 
   for (const ev of evs) {
     const f = ev.project.field;
-    const existing = fieldMap.get(f) ?? { earned: 0, contract: 0, count: 0 };
+    const existing = fieldMap.get(f) ?? {
+      earned: 0,
+      contract: 0,
+      outsourcing: 0,
+      count: 0,
+    };
     const sectionAllocationTotal =
       (ev.project.allocationSection1 ?? 0) +
       (ev.project.allocationSection2 ?? 0) +
@@ -147,6 +171,7 @@ export function calcFieldSummary(evs: EarnedValue[]): FieldSummary[] {
     fieldMap.set(f, {
       earned: existing.earned + ev.total,
       contract: existing.contract + sectionAllocationTotal,
+      outsourcing: existing.outsourcing + (ev.project.outsourcingAmount ?? 0),
       count: existing.count + 1,
     });
   }
@@ -155,6 +180,7 @@ export function calcFieldSummary(evs: EarnedValue[]): FieldSummary[] {
     field,
     earnedValue: v.earned,
     contractAmount: v.contract,
+    outsourcingAmount: v.outsourcing,
     projectCount: v.count,
   }));
 }

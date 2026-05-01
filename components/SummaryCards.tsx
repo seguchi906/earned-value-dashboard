@@ -13,6 +13,12 @@ export default function SummaryCards({
   sectionSummary,
 }: SummaryCardsProps) {
   const totalEarned = earnedValues.reduce((s, ev) => s + ev.total, 0);
+  const totalOutsourcingEarned = earnedValues.reduce(
+    (s, ev) =>
+      s +
+      Math.round((ev.project.outsourcingAmount ?? 0) * (ev.progressRate / 100)),
+    0
+  );
   const totalContract = earnedValues.reduce(
     (s, ev) =>
       s +
@@ -43,8 +49,13 @@ export default function SummaryCards({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-xs text-gray-500 mb-1">出来高合計</div>
-          <div className="text-2xl font-bold text-gray-900">
-            {formatManYen(totalEarned)}
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-2xl font-bold text-gray-900">
+              {formatManYen(totalEarned)}
+            </span>
+            <span className="text-sm font-semibold text-orange-600">
+              （外注{formatManYen(totalOutsourcingEarned)}）
+            </span>
           </div>
           <div className="text-xs text-gray-400 mt-1">
             契約金額計: {formatManYen(totalContract)}

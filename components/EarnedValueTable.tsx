@@ -18,7 +18,8 @@ type SortKey =
   | "total"
   | "section1"
   | "section2"
-  | "section3";
+  | "section3"
+  | "outsourcingAmount";
 
 const SECTION_OPTIONS: (ResponsibleSection | "すべて")[] = [
   "すべて",
@@ -122,6 +123,10 @@ export default function EarnedValueTable({ earnedValues }: EarnedValueTableProps
           va = a.section3;
           vb = b.section3;
           break;
+        case "outsourcingAmount":
+          va = a.project.outsourcingAmount ?? 0;
+          vb = b.project.outsourcingAmount ?? 0;
+          break;
       }
       if (typeof va === "string" && typeof vb === "string") {
         return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
@@ -189,12 +194,13 @@ export default function EarnedValueTable({ earnedValues }: EarnedValueTableProps
               {th("1課", "section1", "w-24 text-right")}
               {th("2課", "section2", "w-24 text-right")}
               {th("3課", "section3", "w-24 text-right")}
+              {th("外注費", "outsourcingAmount", "w-28 text-right")}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-3 py-8 text-center text-gray-400 text-sm">
+                <td colSpan={10} className="px-3 py-8 text-center text-gray-400 text-sm">
                   表示するデータがありません
                 </td>
               </tr>
@@ -242,6 +248,11 @@ export default function EarnedValueTable({ earnedValues }: EarnedValueTableProps
                   <td className="px-3 py-2 text-xs text-right text-purple-700">
                     {ev.section3 > 0 ? formatManYen(ev.section3) : "—"}
                   </td>
+                  <td className="px-3 py-2 text-xs text-right text-orange-600 font-medium">
+                    {(ev.project.outsourcingAmount ?? 0) > 0
+                      ? formatManYen(ev.project.outsourcingAmount ?? 0)
+                      : "—"}
+                  </td>
                 </tr>
               ))
             )}
@@ -274,6 +285,12 @@ export default function EarnedValueTable({ earnedValues }: EarnedValueTableProps
             3課:{" "}
             <span className="font-bold text-purple-700">
               {formatManYen(sorted.reduce((s, ev) => s + ev.section3, 0))}
+            </span>
+          </span>
+          <span>
+            外注費:{" "}
+            <span className="font-bold text-orange-600">
+              {formatManYen(sorted.reduce((s, ev) => s + (ev.project.outsourcingAmount ?? 0), 0))}
             </span>
           </span>
           <span>

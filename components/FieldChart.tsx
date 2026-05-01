@@ -40,6 +40,7 @@ export default function FieldChart({ fieldSummary }: FieldChartProps) {
     name: fs.field,
     出来高: Math.round(fs.earnedValue / 10000),
     契約金額: Math.round(fs.contractAmount / 10000),
+    外注費: Math.round(fs.outsourcingAmount / 10000),
   }));
 
   const pieData = sorted
@@ -89,6 +90,7 @@ export default function FieldChart({ fieldSummary }: FieldChartProps) {
               ))}
             </Bar>
             <Bar dataKey="契約金額" fill="#e5e7eb" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="外注費" fill="#f97316" radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
